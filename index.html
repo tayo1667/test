@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentriom - Smart Crypto Savings Platform</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23667eea'/%3E%3Cstop offset='1' stop-color='%23764ba2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='12' fill='url(%23g)'/%3E%3Ctext x='32' y='42' font-family='Arial' font-size='32' font-weight='bold' fill='white' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <span>Sentriom</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#savings">Savings Plans</a>
+                    <a href="#security">Security</a>
+                    <a href="#about">About</a>
+                </div>
+                <div class="nav-actions">
+                    <a href="app/login.html"><button class="btn-primary">Open Web App</button></a>
+                </div>
+                <button class="mobile-menu-btn">☰</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Save Smarter with Crypto</h1>
+                    <p class="hero-subtitle">Lock in today's crypto rates and earn up to 4.8% APY guaranteed. Your crypto value is fixed at deposit rate for the entire term.</p>
+                    <div class="hero-cta">
+                        <a href="app/login.html"><button class="btn-primary btn-large">Open Web App</button></a>
+                        <button class="btn-outline btn-large">Learn More</button>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <div class="stat-value">$180M+</div>
+                            <div class="stat-label">Total Saved</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">120K+</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">4.8%</div>
+                            <div class="stat-label">Max APY</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="crypto-rates-card">
+                        <div class="card-header">
+                            <span class="card-title">Live Crypto Rates</span>
+                            <span class="card-badge live-badge">● Live</span>
+                        </div>
+                        <div class="rates-list" id="crypto-rates">
+                            <div class="rate-item loading">
+                                <div class="rate-icon btc">₿</div>
+                                <div class="rate-info">
+                                    <div class="rate-name">Bitcoin</div>
+                                    <div class="rate-symbol">BTC</div>
+                                </div>
+                                <div class="rate-price">
+                                    <div class="price-value">Loading...</div>
+                                    <div class="price-change">--</div>
+                                </div>
+                            </div>
+                            <div class="rate-item loading">
+                                <div class="rate-icon eth">Ξ</div>
+                                <div class="rate-info">
+                                    <div class="rate-name">Ethereum</div>
+                                    <div class="rate-symbol">ETH</div>
+                                </div>
+                                <div class="rate-price">
+                                    <div class="price-value">Loading...</div>
+                                    <div class="price-change">--</div>
+                                </div>
+                            </div>
+                            <div class="rate-item loading">
+                                <div class="rate-icon usdt">₮</div>
+                                <div class="rate-info">
+                                    <div class="rate-name">Tether</div>
+                                    <div class="rate-symbol">USDT</div>
+                                </div>
+                                <div class="rate-price">
+                                    <div class="price-value">Loading...</div>
+                                    <div class="price-change">--</div>
+                                </div>
+                            </div>
+                            <div class="rate-item loading">
+                                <div class="rate-icon bnb">B</div>
+                                <div class="rate-info">
+                                    <div class="rate-name">BNB</div>
+                                    <div class="rate-symbol">BNB</div>
+                                </div>
+                                <div class="rate-price">
+                                    <div class="price-value">Loading...</div>
+                                    <div class="price-change">--</div>
+                                </div>
+                            </div>
+                            <div class="rate-item loading">
+                                <div class="rate-icon sol">◎</div>
+                                <div class="rate-info">
+                                    <div class="rate-name">Solana</div>
+                                    <div class="rate-symbol">SOL</div>
+                                </div>
+                                <div class="rate-price">
+                                    <div class="price-value">Loading...</div>
+                                    <div class="price-change">--</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rates-footer">
+                            <p>Lock in today's rates with up to 4.8% APY guaranteed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Savings Plans Section -->
+    <section id="savings" class="savings-plans">
+        <div class="container">
+            <div class="section-header">
+                <h2>Flexible Savings Plans</h2>
+                <p>Choose the term that fits your goals</p>
+            </div>
+            <div class="plans-grid">
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3>3 Months</h3>
+                        <div class="plan-apy">2.4% APY</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li>✓ Minimum 3-month lock</li>
+                        <li>✓ 2.4% annual return</li>
+                        <li>✓ Rate locked at deposit</li>
+                        <li>✓ All cryptocurrencies</li>
+                        <li>✓ Secure cold storage</li>
+                    </ul>
+                    <a href="app/login.html"><button class="btn-outline">Start Saving</button></a>
+                </div>
+                <div class="plan-card featured">
+                    <div class="plan-badge">Most Popular</div>
+                    <div class="plan-header">
+                        <h3>6 Months</h3>
+                        <div class="plan-apy">3.6% APY</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li>✓ 6-month lock period</li>
+                        <li>✓ 3.6% annual return</li>
+                        <li>✓ Rate locked at deposit</li>
+                        <li>✓ Higher returns</li>
+                        <li>✓ Priority support</li>
+                    </ul>
+                    <a href="app/login.html"><button class="btn-primary">Start Saving</button></a>
+                </div>
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3>12 Months</h3>
+                        <div class="plan-apy">4.8% APY</div>
+                    </div>
+                    <ul class="plan-features">
+                        <li>✓ 12-month lock period</li>
+                        <li>✓ 4.8% annual return</li>
+                        <li>✓ Rate locked at deposit</li>
+                        <li>✓ Maximum returns</li>
+                        <li>✓ VIP support</li>
+                    </ul>
+                    <a href="app/login.html"><button class="btn-outline">Start Saving</button></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Why Choose Sentriom</h2>
+                <p>The smartest way to grow your crypto wealth</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <h3>Rate Lock Guarantee</h3>
+                    <p>Your crypto value is locked at today's rate. No market volatility risk during your savings period.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                    </div>
+                    <h3>Up to 4.8% APY</h3>
+                    <p>Earn up to 4.8% annual return on your locked crypto value, paid at maturity.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        </svg>
+                    </div>
+                    <h3>Flexible Terms</h3>
+                    <p>Choose from 3, 6, or 12-month terms with increasing APY rates.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                    </div>
+                    <h3>Global Access</h3>
+                    <p>Save and earn from anywhere in the world, 24/7.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h3>Multiple Cryptocurrencies</h3>
+                    <p>Support for Bitcoin, Ethereum, USDC, and 50+ other digital assets.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <span>Sentriom</span>
+                    </div>
+                    <p>The future of crypto savings</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <a href="#">Features</a>
+                    <a href="#">Savings Plans</a>
+                    <a href="#">Security</a>
+                    <a href="#">Pricing</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <a href="#">About Us</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Press</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Contact</a>
+                    <a href="#">Terms</a>
+                    <a href="#">Privacy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Sentriom. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
