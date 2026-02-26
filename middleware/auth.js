@@ -15,12 +15,12 @@ async function authenticateToken(req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Check if session exists and is valid
-    const sessionResult = await pool.query(
-      'SELECT * FROM sessions WHERE token = $1 AND expires_at > NOW()',
+    const [sessionRows] = await pool.query(
+      'SELECT * FROM sessions WHERE token = ? AND expires_at > NOW()',
       [token]
     );
 
-    if (sessionResult.rows.length === 0) {
+    if (sessionRows.length === 0) {
       return res.status(401).json({ error: 'Invalid or expired session' });
     }
 

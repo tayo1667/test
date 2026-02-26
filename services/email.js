@@ -1,0 +1,113 @@
+/**
+ * Email service using Resend.
+ * Use for OTP, notifications, and other transactional emails.
+ */
+
+const apiKey = process.env.RESEND_API_KEY;
+const fromEmail = process.env.FROM_EMAIL || 'Sentriom <onboarding@resend.dev>';
+
+let resend = null;
+if (apiKey) {
+  try {
+    const { Resend } = require('resend');
+    resend = new Resend(apiKey);
+  } catch (err) {
+    console.warn('Resend init failed:', err.message);
+  }
+}
+
+const isConfigured = () => !!resend;
+
+/**
+ * Send OTP email (login or signup).
+ * @param {string} to - Recipient email
+ * @param {string} otp - 6-digit OTP code
+ * @param {{ context: 'login' | 'signup', firstName?: string }} options
+ * @returns {Promise<{ success: boolean, error?: string }>}
+ */
+async function sendOTP(to, otp, options = {}) {
+  const { context = 'login', firstName } = options;
+  const subject =
+    context === 'signup'
+      ? 'Your Sentriom verification code'
+      : 'Your Sentriom login code';
+
+  const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;padding:24px;">
+  <div style="max-width:420px;margin:0 auto;background:#fff;border-radius:12px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <h1 style="margin:0 0 8px;font-size:20px;color:#111;">Sentriom</h1>
+    <p style="margin:0 0 24px;font-size:14px;color:#666;">${greeting}</p>
+    <p style="margin:0 0 16px;font-size:15px;color:#333;">
+      Your verification code is:
+    </p>
+    <p style="margin:0 0 24px;font-size:28px;font-weight:700;letter-spacing:6px;color:#111;font-family:monospace;">
+      ${otp}
+    </p>
+    <p style="margin:0;font-size:13px;color:#888;">
+      This code expires in 10 minutes. If you didn't request this, you can ignore this email.
+    </p>
+    <hr style="margin:24px 0 0;border:none;border-top:1px solid #eee;">
+    <p style="margin:12px 0 0;font-size:12px;color:#999;">
+      Sentriom – Smart Crypto Savings
+    </p>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  return sendEmail({ to, subject, html });
+}
+
+/**
+ * Send a generic email.
+ * @param {{ to: string | string[], subject: string, html: string, text?: string }} options
+ * @returns {Promise<{ success: boolean, error?: string, id?: string }>}
+ */
+async function sendEmail({ to, subject, html, text }) {
+  const toList = Array.isArray(to) ? to : [to];
+
+  if (!resend) {
+    console.log('[Email] Resend not configured (RESEND_API_KEY missing). Would send:');
+    console.log('[Email]   to:', toList.join(', '));
+    console.log('[Email]   subject:', subject);
+    if (text) console.log('[Email]   text:', text);
+    return { success: true };
+  }
+
+  try {
+    const payload = {
+      from: fromEmail,
+      to: toList,
+      subject,
+      html
+    };
+    if (text) payload.text = text;
+
+    const { data, error } = await resend.emails.send(payload);
+
+    if (error) {
+      console.error('[Email] Resend error:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, id: data?.id };
+  } catch (err) {
+    console.error('[Email] Send failed:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+module.exports = {
+  isConfigured,
+  sendOTP,
+  sendEmail
+};

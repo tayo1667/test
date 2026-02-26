@@ -1,0 +1,258 @@
+{
+  "info": {
+    "name": "Sentriom API",
+    "description": "Smart Crypto Savings Platform – all API endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "admin_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login - Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/login/send-otp",
+            "description": "Send 6-digit OTP to existing user's email for login. User must exist (sign up first)."
+          }
+        },
+        {
+          "name": "Login - Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/login/verify-otp",
+            "description": "Verify OTP and get JWT token + user. Use token in Authorization header for protected routes."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/auth/logout",
+            "description": "Invalidate current session. Token optional; if sent, that session is deleted."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Signup",
+      "item": [
+        {
+          "name": "Signup - Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/signup/send-otp",
+            "description": "Create account and send 6-digit OTP to email. Email must not already exist."
+          }
+        },
+        {
+          "name": "Signup - Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/signup/verify-otp",
+            "description": "Verify OTP after signup. Returns JWT token and user. Set collection variable 'token' from response."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get current user (me)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/users/me",
+            "description": "Get authenticated user profile. Requires user JWT."
+          }
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": "{{base_url}}/api/users/me",
+            "description": "Update first and last name. Requires user JWT."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deposits",
+      "item": [
+        {
+          "name": "Create deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crypto\": \"USDT\",\n  \"cryptoName\": \"Tether\",\n  \"amount\": 100,\n  \"usdValue\": 100,\n  \"plan\": 6,\n  \"apy\": 8.5\n}"
+            },
+            "url": "{{base_url}}/api/deposits",
+            "description": "Create a new deposit (plan in months, apy in %). Requires user JWT."
+          }
+        },
+        {
+          "name": "Get my deposits",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/deposits",
+            "description": "List all deposits for the authenticated user."
+          }
+        },
+        {
+          "name": "Get deposit by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/deposits/1",
+            "description": "Get a single deposit by id. Must belong to the authenticated user."
+          }
+        },
+        {
+          "name": "Dashboard stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{base_url}}/api/deposits/stats/dashboard",
+            "description": "Get dashboard stats: totalBalance, totalEarned, activePlans, pendingDeposits, averageAPY."
+          }
+        },
+        {
+          "name": "Update deposit status (webhook)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"korapayReference\": \"DEP-1234567890-1\"\n}"
+            },
+            "url": "{{base_url}}/api/deposits/1/status",
+            "description": "Update deposit status (e.g. for Korapay webhook). Match by id or korapay_reference. No auth in implementation."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"admin123\"\n}"
+            },
+            "url": "{{base_url}}/api/admin/login",
+            "description": "Get admin JWT. Password from ADMIN_PASSWORD env (default admin123). Set admin_token variable from response."
+          }
+        },
+        {
+          "name": "Get admin stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/api/admin/stats",
+            "description": "Dashboard stats: totalUsers, totalDeposits, totalValue, pendingDeposits, completedDeposits, recentSignups, recentDepositsCount, recentDepositsValue."
+          }
+        },
+        {
+          "name": "Get all users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/api/admin/users?page=1&limit=20",
+            "description": "Paginated list of users with deposit count and total deposited. Query: page, limit."
+          }
+        },
+        {
+          "name": "Get all deposits",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/api/admin/deposits?page=1&limit=20&status=pending",
+            "description": "Paginated list of deposits with user email/name. Query: page, limit, status (optional)."
+          }
+        },
+        {
+          "name": "Get user by ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/api/admin/users/1",
+            "description": "Get one user and their deposits. Requires admin JWT."
+          }
+        },
+        {
+          "name": "Update deposit status (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{admin_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}"
+            },
+            "url": "{{base_url}}/api/admin/deposits/1/status",
+            "description": "Set deposit status: pending, completed, failed. Requires admin JWT."
+          }
+        },
+        {
+          "name": "Get recent activity",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+            "url": "{{base_url}}/api/admin/activity?limit=10",
+            "description": "Recent users and recent deposits. Query: limit (default 10)."
+          }
+        }
+      ]
+    }
+  ]
+}

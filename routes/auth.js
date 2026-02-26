@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { pool } = require('../database/init');
+const { sendOTP } = require('../services/email');
 
 // Generate 6-digit OTP
 function generateOTP() {
@@ -18,12 +19,12 @@ router.post('/login/send-otp', async (req, res) => {
     }
 
     // Check if user exists
-    const userResult = await pool.query(
-      'SELECT id FROM users WHERE email = $1',
+    const [userRows] = await pool.query(
+      'SELECT id FROM users WHERE email = ?',
       [email]
     );
 
-    if (userResult.rows.length === 0) {
+    if (userRows.length === 0) {
       return res.status(404).json({ error: 'User not found. Please sign up first.' });
     }
 
@@ -33,12 +34,17 @@ router.post('/login/send-otp', async (req, res) => {
 
     // Save OTP to database
     await pool.query(
-      'UPDATE users SET otp_code = $1, otp_expires_at = $2 WHERE email = $3',
+      'UPDATE users SET otp_code = ?, otp_expires_at = ? WHERE email = ?',
       [otp, expiresAt, email]
     );
 
-    // TODO: Send OTP via email service (SendGrid, AWS SES, etc.)
-    console.log(`OTP for ${email}: ${otp}`);
+    const emailResult = await sendOTP(email, otp, { context: 'login' });
+    if (!emailResult.success && process.env.NODE_ENV === 'production') {
+      return res.status(500).json({ error: 'Failed to send OTP email' });
+    }
+    if (process.env.NODE_ENV === 'development' && !emailResult.success) {
+      console.log(`OTP for ${email}: ${otp}`);
+    }
 
     res.json({ 
       success: true, 
@@ -61,16 +67,16 @@ router.post('/login/verify-otp', async (req, res) => {
     }
 
     // Get user and verify OTP
-    const result = await pool.query(
-      'SELECT id, email, first_name, last_name, full_name, otp_code, otp_expires_at FROM users WHERE email = $1',
+    const [rows] = await pool.query(
+      'SELECT id, email, first_name, last_name, full_name, otp_code, otp_expires_at FROM users WHERE email = ?',
       [email]
     );
 
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = result.rows[0];
+    const user = rows[0];
 
     // Check OTP
     if (user.otp_code !== otp) {
@@ -84,7 +90,7 @@ router.post('/login/verify-otp', async (req, res) => {
 
     // Clear OTP
     await pool.query(
-      'UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE id = $1',
+      'UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE id = ?',
       [user.id]
     );
 
@@ -98,7 +104,7 @@ router.post('/login/verify-otp', async (req, res) => {
     // Save session
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
     await pool.query(
-      'INSERT INTO sessions (user_id, token, expires_at) VALUES ($1, $2, $3)',
+      'INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)',
       [user.id, token, expiresAt]
     );
 
@@ -129,12 +135,12 @@ router.post('/signup/send-otp', async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await pool.query(
-      'SELECT id FROM users WHERE email = $1',
+    const [existingRows] = await pool.query(
+      'SELECT id FROM users WHERE email = ?',
       [email]
     );
 
-    if (existingUser.rows.length > 0) {
+    if (existingRows.length > 0) {
       return res.status(409).json({ error: 'User already exists' });
     }
 
@@ -145,12 +151,20 @@ router.post('/signup/send-otp', async (req, res) => {
 
     // Create user with OTP
     await pool.query(
-      'INSERT INTO users (email, first_name, last_name, full_name, otp_code, otp_expires_at) VALUES ($1, $2, $3, $4, $5, $6)',
+      'INSERT INTO users (email, first_name, last_name, full_name, otp_code, otp_expires_at) VALUES (?, ?, ?, ?, ?, ?)',
       [email, firstName, lastName, fullName, otp, expiresAt]
     );
 
-    // TODO: Send OTP via email service
-    console.log(`OTP for ${email}: ${otp}`);
+    const emailResult = await sendOTP(email, otp, {
+      context: 'signup',
+      firstName
+    });
+    if (!emailResult.success && process.env.NODE_ENV === 'production') {
+      return res.status(500).json({ error: 'Failed to send OTP email' });
+    }
+    if (process.env.NODE_ENV === 'development' && !emailResult.success) {
+      console.log(`OTP for ${email}: ${otp}`);
+    }
 
     res.json({ 
       success: true, 
@@ -173,16 +187,16 @@ router.post('/signup/verify-otp', async (req, res) => {
     }
 
     // Get user and verify OTP
-    const result = await pool.query(
-      'SELECT id, email, first_name, last_name, full_name, otp_code, otp_expires_at FROM users WHERE email = $1',
+    const [rows2] = await pool.query(
+      'SELECT id, email, first_name, last_name, full_name, otp_code, otp_expires_at FROM users WHERE email = ?',
       [email]
     );
 
-    if (result.rows.length === 0) {
+    if (rows2.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = result.rows[0];
+    const user = rows2[0];
 
     // Check OTP
     if (user.otp_code !== otp) {
@@ -196,7 +210,7 @@ router.post('/signup/verify-otp', async (req, res) => {
 
     // Clear OTP
     await pool.query(
-      'UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE id = $1',
+      'UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE id = ?',
       [user.id]
     );
 
@@ -210,7 +224,7 @@ router.post('/signup/verify-otp', async (req, res) => {
     // Save session
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
     await pool.query(
-      'INSERT INTO sessions (user_id, token, expires_at) VALUES ($1, $2, $3)',
+      'INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)',
       [user.id, token, expiresAt]
     );
 
@@ -237,7 +251,7 @@ router.post('/logout', async (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
 
     if (token) {
-      await pool.query('DELETE FROM sessions WHERE token = $1', [token]);
+      await pool.query('DELETE FROM sessions WHERE token = ?', [token]);
     }
 
     res.json({ success: true, message: 'Logged out successfully' });

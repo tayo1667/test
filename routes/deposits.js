@@ -21,15 +21,16 @@ router.post('/', authenticateToken, async (req, res) => {
     const korapayReference = `DEP-${Date.now()}-${userId}`;
 
     // Insert deposit
-    const result = await pool.query(
+    const [insertResult] = await pool.query(
       `INSERT INTO deposits 
        (user_id, crypto, crypto_name, amount, usd_value, plan, apy, korapay_reference, maturity_date, status) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
-       RETURNING *`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [userId, crypto, cryptoName, amount, usdValue, plan, apy, korapayReference, maturityDate, 'pending']
     );
 
-    const deposit = result.rows[0];
+    const insertId = insertResult.insertId;
+    const [depositRows] = await pool.query('SELECT * FROM deposits WHERE id = ?', [insertId]);
+    const deposit = depositRows[0];
 
     res.json({
       success: true,
@@ -58,14 +59,14 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    const result = await pool.query(
+    const [rows] = await pool.query(
       `SELECT * FROM deposits 
-       WHERE user_id = $1 
+       WHERE user_id = ? 
        ORDER BY created_at DESC`,
       [userId]
     );
 
-    const deposits = result.rows.map(deposit => ({
+    const deposits = rows.map(deposit => ({
       id: deposit.id,
       crypto: deposit.crypto,
       cryptoName: deposit.crypto_name,
@@ -93,16 +94,16 @@ router.get('/:id', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
     const depositId = req.params.id;
 
-    const result = await pool.query(
-      'SELECT * FROM deposits WHERE id = $1 AND user_id = $2',
+    const [rows] = await pool.query(
+      'SELECT * FROM deposits WHERE id = ? AND user_id = ?',
       [depositId, userId]
     );
 
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: 'Deposit not found' });
     }
 
-    const deposit = result.rows[0];
+    const deposit = rows[0];
 
     res.json({
       success: true,
@@ -139,12 +140,12 @@ router.patch('/:id/status', async (req, res) => {
       return res.status(400).json({ error: 'Status is required' });
     }
 
-    const result = await pool.query(
-      'UPDATE deposits SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 OR korapay_reference = $3 RETURNING *',
-      [status, depositId, korapayReference]
+    const [updateResult] = await pool.query(
+      'UPDATE deposits SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? OR korapay_reference = ?',
+      [status, depositId, korapayReference || null]
     );
 
-    if (result.rows.length === 0) {
+    if (updateResult.affectedRows === 0) {
       return res.status(404).json({ error: 'Deposit not found' });
     }
 
@@ -161,12 +162,10 @@ router.get('/stats/dashboard', authenticateToken, async (req, res) => {
     const userId = req.user.userId;
 
     // Get all deposits
-    const depositsResult = await pool.query(
-      'SELECT * FROM deposits WHERE user_id = $1',
+    const [deposits] = await pool.query(
+      'SELECT * FROM deposits WHERE user_id = ?',
       [userId]
     );
-
-    const deposits = depositsResult.rows;
 
     // Calculate stats
     let totalBalance = 0;
