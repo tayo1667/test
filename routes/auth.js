@@ -48,8 +48,7 @@ router.post('/login/send-otp', async (req, res) => {
 
     res.json({ 
       success: true, 
-      message: 'OTP sent successfully',
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined // Only in dev
+      message: 'OTP sent to your email address'
     });
   } catch (error) {
     console.error('Login OTP error:', error);
@@ -168,8 +167,7 @@ router.post('/signup/send-otp', async (req, res) => {
 
     res.json({ 
       success: true, 
-      message: 'OTP sent successfully',
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined // Only in dev
+      message: 'OTP sent to your email address'
     });
   } catch (error) {
     console.error('Signup OTP error:', error);
