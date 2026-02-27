@@ -1,8 +1,9 @@
 // Web App Authentication with Email OTP
 
+// Use same origin on production so /api/* is proxied (e.g. Netlify → Railway). Use localhost only in dev.
 const API_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:3000' 
-    : 'https://sentriom-production.up.railway.app';
+    : '';  // same origin: sentriom.com/api/... or www.sentriom.com/api/...
 
 // Toast notification function
 function showToast(message, type = 'info') {
