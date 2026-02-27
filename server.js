@@ -29,7 +29,7 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// CORS – allow frontend on sentriom.com / www (and localhost). Stops "no network" from browser blocking.
+// CORS – explicit so Android Chrome and all browsers accept (preflight can be strict on Android).
 const allowedOrigins = [
   'https://sentriom.com',
   'https://www.sentriom.com',
@@ -39,8 +39,12 @@ const allowedOrigins = [
 app.use(cors({
   origin: function (origin, cb) {
     if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    cb(null, true); // still allow other origins for now; tighten in prod if needed
-  }
+    cb(null, true);
+  },
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  maxAge: 86400
 }));
 
 // Body parser

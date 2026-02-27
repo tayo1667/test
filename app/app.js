@@ -1,9 +1,11 @@
 // Web App Authentication with Email OTP
 
-// API base: always HTTPS in production; robust fallback for all browsers (iOS, Android, Windows).
+// Call Railway directly in production so requests hit your app and show in Railway logs (no proxy needed).
+// Replace with your real Railway URL if different (e.g. https://your-app.up.railway.app).
+const RAILWAY_API_URL = 'https://sentriom-production.up.railway.app';
 const API_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
-    : (window.location.origin || (window.location.protocol + '//' + window.location.host)).replace(/^http:/, 'https:');
+    : RAILWAY_API_URL;
 
 const FETCH_TIMEOUT_MS = 25000;
 async function apiFetch(url, options = {}, retries = 1) {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://*.up.railway.app https://*.railway.app https://sentriom.com https://www.sentriom.com;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Sentriom Web App</title>
@@ -106,7 +107,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
     <script>
         // Toast notification system
         function showToast(message, type = 'info') {

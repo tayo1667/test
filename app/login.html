@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://*.up.railway.app https://*.railway.app https://sentriom.com https://www.sentriom.com;">
     <title>Login - Sentriom Web App</title>
     <link rel="icon" type="image/png" href="../9761.png">
     <link rel="stylesheet" href="app.css">
@@ -88,7 +89,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
     <script>
         // Toast notification system
         function showToast(message, type = 'info') {
