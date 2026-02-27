@@ -45,13 +45,23 @@ router.post('/login/send-otp', async (req, res) => {
 
     console.log('✅ [LOGIN] OTP saved to database');
 
+    console.log('📧 [LOGIN] Calling sendOTP function...');
     const emailResult = await sendOTP(email, otp, { context: 'login' });
+    console.log('📧 [LOGIN] sendOTP result:', JSON.stringify(emailResult));
+    
     if (!emailResult.success && process.env.NODE_ENV === 'production') {
       console.log('❌ [LOGIN] Email send failed in production');
       return res.status(500).json({ error: 'Failed to send OTP email' });
     }
     if (process.env.NODE_ENV === 'development' && !emailResult.success) {
       console.log(`🔐 [LOGIN] DEV OTP for ${email}: ${otp}`);
+    }
+    
+    if (emailResult.success) {
+      console.log('✅ [LOGIN] Email sent successfully!');
+      if (emailResult.id) {
+        console.log('✅ [LOGIN] Resend email ID:', emailResult.id);
+      }
     }
 
     console.log('✅ [LOGIN] OTP sent successfully to:', email);
@@ -178,16 +188,26 @@ router.post('/signup/send-otp', async (req, res) => {
 
     console.log('✅ [SIGNUP] User created, sending OTP email...');
 
+    console.log('📧 [SIGNUP] Calling sendOTP function...');
     const emailResult = await sendOTP(email, otp, {
       context: 'signup',
       firstName
     });
+    console.log('📧 [SIGNUP] sendOTP result:', JSON.stringify(emailResult));
+    
     if (!emailResult.success && process.env.NODE_ENV === 'production') {
       console.log('❌ [SIGNUP] Email send failed in production');
       return res.status(500).json({ error: 'Failed to send OTP email' });
     }
     if (process.env.NODE_ENV === 'development' && !emailResult.success) {
       console.log(`🔐 [SIGNUP] DEV OTP for ${email}: ${otp}`);
+    }
+    
+    if (emailResult.success) {
+      console.log('✅ [SIGNUP] Email sent successfully!');
+      if (emailResult.id) {
+        console.log('✅ [SIGNUP] Resend email ID:', emailResult.id);
+      }
     }
 
     console.log('✅ [SIGNUP] OTP sent successfully to:', email);
