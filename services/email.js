@@ -6,14 +6,22 @@
 const apiKey = process.env.RESEND_API_KEY;
 const fromEmail = process.env.FROM_EMAIL || 'Sentriom <onboarding@resend.dev>';
 
+console.log('📧 [EMAIL SERVICE] Initializing...');
+console.log('📧 [EMAIL SERVICE] RESEND_API_KEY set:', !!apiKey);
+console.log('📧 [EMAIL SERVICE] RESEND_API_KEY length:', apiKey ? apiKey.length : 0);
+console.log('📧 [EMAIL SERVICE] FROM_EMAIL:', fromEmail);
+
 let resend = null;
 if (apiKey) {
   try {
     const { Resend } = require('resend');
     resend = new Resend(apiKey);
+    console.log('✅ [EMAIL SERVICE] Resend initialized successfully');
   } catch (err) {
-    console.warn('Resend init failed:', err.message);
+    console.error('❌ [EMAIL SERVICE] Resend init failed:', err.message);
   }
+} else {
+  console.warn('⚠️ [EMAIL SERVICE] No RESEND_API_KEY found - emails will not be sent');
 }
 
 const isConfigured = () => !!resend;
@@ -31,6 +39,10 @@ async function sendOTP(to, otp, options = {}) {
     context === 'signup'
       ? 'Your Sentriom verification code'
       : 'Your Sentriom login code';
+
+  console.log(`📧 [SEND OTP] Attempting to send ${context} OTP to:`, to);
+  console.log(`📧 [SEND OTP] OTP code:`, otp);
+  console.log(`📧 [SEND OTP] Resend configured:`, !!resend);
 
   const greeting = firstName ? `Hi ${firstName},` : 'Hi,';
 
@@ -64,7 +76,9 @@ async function sendOTP(to, otp, options = {}) {
 </html>
   `.trim();
 
-  return sendEmail({ to, subject, html });
+  const result = await sendEmail({ to, subject, html });
+  console.log(`📧 [SEND OTP] Result:`, result);
+  return result;
 }
 
 /**
@@ -75,11 +89,17 @@ async function sendOTP(to, otp, options = {}) {
 async function sendEmail({ to, subject, html, text }) {
   const toList = Array.isArray(to) ? to : [to];
 
+  console.log('📧 [SEND EMAIL] Starting email send...');
+  console.log('📧 [SEND EMAIL] To:', toList.join(', '));
+  console.log('📧 [SEND EMAIL] From:', fromEmail);
+  console.log('📧 [SEND EMAIL] Subject:', subject);
+  console.log('📧 [SEND EMAIL] Resend configured:', !!resend);
+
   if (!resend) {
-    console.log('[Email] Resend not configured (RESEND_API_KEY missing). Would send:');
-    console.log('[Email]   to:', toList.join(', '));
-    console.log('[Email]   subject:', subject);
-    if (text) console.log('[Email]   text:', text);
+    console.log('❌ [SEND EMAIL] Resend not configured (RESEND_API_KEY missing). Would send:');
+    console.log('❌ [SEND EMAIL]   to:', toList.join(', '));
+    console.log('❌ [SEND EMAIL]   subject:', subject);
+    if (text) console.log('❌ [SEND EMAIL]   text:', text);
     return { success: true };
   }
 
@@ -92,16 +112,19 @@ async function sendEmail({ to, subject, html, text }) {
     };
     if (text) payload.text = text;
 
+    console.log('📧 [SEND EMAIL] Calling Resend API...');
     const { data, error } = await resend.emails.send(payload);
 
     if (error) {
-      console.error('[Email] Resend error:', error);
+      console.error('❌ [SEND EMAIL] Resend error:', error);
       return { success: false, error: error.message };
     }
 
+    console.log('✅ [SEND EMAIL] Email sent successfully! ID:', data?.id);
     return { success: true, id: data?.id };
   } catch (err) {
-    console.error('[Email] Send failed:', err);
+    console.error('❌ [SEND EMAIL] Send failed:', err.message);
+    console.error('❌ [SEND EMAIL] Full error:', err);
     return { success: false, error: err.message };
   }
 }
