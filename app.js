@@ -2,7 +2,7 @@
 
 const API_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:3000' 
-    : 'https://sentriom-production.up.railway.app';
+    : 'https://www.sentriom.com';
 
 // Toast notification function
 function showToast(message, type = 'info') {
