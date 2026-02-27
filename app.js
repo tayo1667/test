@@ -1,9 +1,28 @@
 // Web App Authentication with Email OTP
 
-// Use same origin on production so /api/* is proxied (e.g. Netlify → Railway). Use localhost only in dev.
-const API_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3000' 
-    : '';  // same origin: sentriom.com/api/... or www.sentriom.com/api/...
+// API base: use HTTPS in production (mobile often fails on mixed content or HTTP).
+const API_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : (window.location.protocol === 'https:' ? window.location.origin : 'https://' + window.location.host);
+
+// Fetch with timeout and one retry (helps on slow or flaky mobile networks).
+const FETCH_TIMEOUT_MS = 25000;
+async function apiFetch(url, options = {}, retries = 1) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(id);
+        return res;
+    } catch (err) {
+        clearTimeout(id);
+        if (retries > 0 && (err.name === 'AbortError' || /failed|network/i.test(err.message))) {
+            await new Promise(r => setTimeout(r, 2000));
+            return apiFetch(url, options, 0);
+        }
+        throw err;
+    }
+}
 
 // Toast notification function
 function showToast(message, type = 'info') {
@@ -67,32 +86,28 @@ if (loginForm) {
         submitBtn.disabled = true;
         
         try {
-            // Call backend API to send OTP
-            const response = await fetch(`${API_URL}/api/auth/login/send-otp`, {
+            const url = `${API_URL}/api/auth/login/send-otp`;
+            const response = await apiFetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
             });
-            
-            const data = await response.json();
-            
+            const text = await response.text();
+            let data = {};
+            try { data = text ? JSON.parse(text) : {}; } catch (_) { /* server returned non-JSON (e.g. HTML 404) */ }
             if (response.ok) {
-                // Show success message
                 showToast('✅ OTP sent to your email! Check your inbox.', 'success');
-                
-                // Show OTP form
                 loginForm.style.display = 'none';
                 document.getElementById('otp-form').style.display = 'flex';
                 document.getElementById('sent-email').textContent = email;
             } else {
-                // Show error
-                showToast('❌ ' + (data.error || 'Failed to send OTP. Please try again.'), 'error');
+                showToast('❌ ' + (data.error || data.reason || 'Failed to send OTP. Please try again.'), 'error');
             }
         } catch (error) {
-            console.error('Login error:', error);
-            showToast('❌ Network error. Please check your connection.', 'error');
+            console.error('Login error:', error, 'URL:', `${API_URL}/api/auth/login/send-otp`);
+            const msg = error.message || String(error);
+            const isNetwork = /fetch|network|cors|failed|abort/i.test(msg);
+            showToast(isNetwork ? '❌ Connection failed. Try again or use Wi‑Fi.' : '❌ ' + msg, 'error');
         } finally {
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
@@ -125,36 +140,27 @@ if (signupForm) {
         submitBtn.disabled = true;
         
         try {
-            // Call backend API to send OTP
-            const response = await fetch(`${API_URL}/api/auth/signup/send-otp`, {
+            const url = `${API_URL}/api/auth/signup/send-otp`;
+            const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email,
-                    firstName: firstname,
-                    lastName: lastname
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, firstName: firstname, lastName: lastname })
             });
-            
-            const data = await response.json();
-            
+            const text = await response.text();
+            let data = {};
+            try { data = text ? JSON.parse(text) : {}; } catch (_) { }
             if (response.ok) {
-                // Show success message
                 showToast('✅ OTP sent to your email! Check your inbox.', 'success');
-                
-                // Show OTP form
                 signupForm.style.display = 'none';
                 document.getElementById('otp-form').style.display = 'flex';
                 document.getElementById('sent-email').textContent = email;
             } else {
-                // Show error
-                showToast('❌ ' + (data.error || 'Failed to send OTP. Please try again.'), 'error');
+                showToast('❌ ' + (data.error || data.reason || 'Failed to send OTP. Please try again.'), 'error');
             }
         } catch (error) {
-            console.error('Signup error:', error);
-            showToast('❌ Network error. Please check your connection.', 'error');
+            console.error('Signup error:', error, 'URL:', `${API_URL}/api/auth/signup/send-otp`);
+            const msg = error.message || String(error);
+            showToast(/fetch|network|cors|failed|abort/i.test(msg) ? '❌ Connection failed. Try again or use Wi‑Fi.' : '❌ ' + msg, 'error');
         } finally {
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
@@ -178,46 +184,34 @@ if (otpForm) {
         submitBtn.disabled = true;
         
         try {
-            // Call backend API to verify OTP
             const endpoint = isSignup ? '/api/auth/signup/verify-otp' : '/api/auth/login/verify-otp';
-            const response = await fetch(`${API_URL}${endpoint}`, {
+            const url = `${API_URL}${endpoint}`;
+            const response = await apiFetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: tempUserData.email,
-                    otp: enteredOTP
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: tempUserData.email, otp: enteredOTP })
             });
-            
-            const data = await response.json();
-            
+            const text = await response.text();
+            let data = {};
+            try { data = text ? JSON.parse(text) : {}; } catch (_) { }
             if (response.ok) {
-                // OTP is correct - save user data
                 localStorage.setItem('userLoggedIn', 'true');
                 localStorage.setItem('userEmail', data.user.email);
                 localStorage.setItem('userName', data.user.fullName);
                 localStorage.setItem('userFirstName', data.user.firstName);
                 localStorage.setItem('authToken', data.token);
-                
                 showToast('✅ Success! Redirecting to dashboard...', 'success');
-                
-                // Redirect to dashboard
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
             } else {
-                // OTP is incorrect
-                showToast('❌ ' + (data.error || 'Invalid OTP code. Please try again.'), 'error');
+                showToast('❌ ' + (data.error || data.reason || 'Invalid OTP. Please try again.'), 'error');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
                 document.getElementById('otp').value = '';
                 document.getElementById('otp').focus();
             }
         } catch (error) {
-            console.error('Verification error:', error);
-            showToast('❌ Network error. Please check your connection.', 'error');
+            console.error('Verification error:', error, 'URL:', `${API_URL}${isSignup ? '/api/auth/signup/verify-otp' : '/api/auth/login/verify-otp'}`);
+            showToast('❌ Connection failed. Try again or use Wi‑Fi.', 'error');
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
         }
@@ -235,30 +229,23 @@ if (resendBtn) {
         resendBtn.textContent = 'Sending...';
         
         try {
-            // Call backend API to resend OTP
             const endpoint = isSignup ? '/api/auth/signup/send-otp' : '/api/auth/login/send-otp';
-            const body = isSignup 
+            const body = isSignup
                 ? { email: tempUserData.email, firstName: tempUserData.firstname, lastName: tempUserData.lastname }
                 : { email: tempUserData.email };
-            
-            const response = await fetch(`${API_URL}${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-            
-            const data = await response.json();
-            
+            const url = `${API_URL}${endpoint}`;
+            const response = await apiFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const text = await response.text();
+            let data = {};
+            try { data = text ? JSON.parse(text) : {}; } catch (_) { }
             if (response.ok) {
                 showToast('✅ New OTP sent to your email!', 'success');
             } else {
-                showToast('❌ ' + (data.error || 'Failed to resend OTP. Please try again.'), 'error');
+                showToast('❌ ' + (data.error || data.reason || 'Failed to resend OTP.'), 'error');
             }
         } catch (error) {
-            console.error('Resend error:', error);
-            showToast('❌ Network error. Please check your connection.', 'error');
+            console.error('Resend error:', error, 'URL:', `${API_URL}${isSignup ? '/api/auth/signup/send-otp' : '/api/auth/login/send-otp'}`);
+            showToast('❌ Connection failed. Try again or use Wi‑Fi.', 'error');
         } finally {
             resendBtn.disabled = false;
             resendBtn.textContent = 'Resend OTP';

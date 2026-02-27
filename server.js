@@ -29,8 +29,19 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// CORS
-app.use(cors());
+// CORS – allow frontend on sentriom.com / www (and localhost). Stops "no network" from browser blocking.
+const allowedOrigins = [
+  'https://sentriom.com',
+  'https://www.sentriom.com',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+];
+app.use(cors({
+  origin: function (origin, cb) {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(null, true); // still allow other origins for now; tighten in prod if needed
+  }
+}));
 
 // Body parser
 app.use(express.json());
