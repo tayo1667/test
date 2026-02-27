@@ -8,19 +8,25 @@ router.post('/login', async (req, res) => {
   try {
     const { password } = req.body;
     
-    console.log('Admin login attempt received');
-    console.log('Password received:', password ? 'Yes' : 'No');
+    console.log('🔐 [ADMIN] Login attempt received');
+    console.log('🔐 [ADMIN] Password received:', password ? 'Yes' : 'No');
+    console.log('🔐 [ADMIN] Password length:', password ? password.length : 0);
     
     // Simple admin password check (in production, use proper auth)
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin663352';
     
-    console.log('Expected password set:', adminPassword ? 'Yes' : 'No');
-    console.log('Password match:', password === adminPassword);
+    console.log('🔐 [ADMIN] Expected password set:', adminPassword ? 'Yes' : 'No');
+    console.log('🔐 [ADMIN] Expected password length:', adminPassword.length);
+    console.log('🔐 [ADMIN] Expected password:', adminPassword);
+    console.log('🔐 [ADMIN] Received password:', password);
+    console.log('🔐 [ADMIN] Password match:', password === adminPassword);
     
     if (password !== adminPassword) {
-      console.log('Password mismatch - login denied');
+      console.log('❌ [ADMIN] Password mismatch - login denied');
       return res.status(401).json({ error: 'Invalid password' });
     }
+    
+    console.log('✅ [ADMIN] Password correct, generating token...');
     
     // Generate admin token
     const jwt = require('jsonwebtoken');
@@ -30,10 +36,10 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
     
-    console.log('Admin login successful');
+    console.log('✅ [ADMIN] Login successful');
     res.json({ success: true, token });
   } catch (error) {
-    console.error('Admin login error:', error);
+    console.error('❌ [ADMIN] Login error:', error.message);
     res.status(500).json({ error: 'Login failed' });
   }
 });

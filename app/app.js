@@ -2,7 +2,7 @@
 
 const API_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:3000' 
-    : 'https://www.sentriom.com';
+    : 'https://sentriom-production.up.railway.app';
 
 // Auto-scroll to form on auth pages
 if (window.location.pathname.includes('login.html') || window.location.pathname.includes('signup.html')) {
