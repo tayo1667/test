@@ -45,6 +45,54 @@ app.use('/api/deposits', depositRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Database info endpoint (for debugging)
+app.get('/api/db-info', async (req, res) => {
+  try {
+    const { pool } = require('./database/init');
+    const [rows] = await pool.query('SELECT COUNT(*) as user_count FROM users');
+    const [users] = await pool.query('SELECT id, email, first_name, last_name, created_at FROM users ORDER BY created_at DESC LIMIT 10');
+    const dbUrl = process.env.DATABASE_URL || 'Not set';
+    const dbType = dbUrl.startsWith('mysql') ? 'MySQL' : dbUrl.startsWith('postgres') ? 'PostgreSQL' : 'Unknown';
+    
+    res.json({
+      database_type: dbType,
+      database_url_set: !!process.env.DATABASE_URL,
+      database_url_prefix: dbUrl.substring(0, 10),
+      users_in_db: rows[0].user_count,
+      recent_users: users,
+      connection: 'OK'
+    });
+  } catch (error) {
+    res.json({
+      database_type: 'Unknown',
+      database_url_set: !!process.env.DATABASE_URL,
+      error: error.message,
+      connection: 'FAILED'
+    });
+  }
+});
+
+// Delete user by email (for testing only - remove in production!)
+app.delete('/api/test/delete-user/:email', async (req, res) => {
+  try {
+    const { pool } = require('./database/init');
+    const { email } = req.params;
+    
+    const [result] = await pool.query('DELETE FROM users WHERE email = ?', [email]);
+    
+    res.json({
+      success: true,
+      message: `User ${email} deleted`,
+      rows_affected: result.affectedRows
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Serve HTML files
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));

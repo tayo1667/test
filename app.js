@@ -4,6 +4,32 @@ const API_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000' 
     : 'https://sentriom-production.up.railway.app';
 
+// Toast notification function
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        background: ${type === 'success' ? '#48bb78' : type === 'error' ? '#f56565' : '#667eea'};
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-weight: 500;
+        max-width: 400px;
+        animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
 // Auto-scroll to form on auth pages
 if (window.location.pathname.includes('login.html') || window.location.pathname.includes('signup.html')) {
     window.addEventListener('load', () => {
@@ -53,7 +79,7 @@ if (loginForm) {
             
             if (response.ok) {
                 // Show success message
-                alert('OTP sent to your email! Please check your inbox.');
+                showToast('✅ OTP sent to your email! Check your inbox.', 'success');
                 
                 // Show OTP form
                 loginForm.style.display = 'none';
@@ -61,11 +87,11 @@ if (loginForm) {
                 document.getElementById('sent-email').textContent = email;
             } else {
                 // Show error
-                alert(data.error || 'Failed to send OTP. Please try again.');
+                showToast('❌ ' + (data.error || 'Failed to send OTP. Please try again.'), 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
-            alert('Network error. Please check your connection and try again.');
+            showToast('❌ Network error. Please check your connection.', 'error');
         } finally {
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
@@ -115,7 +141,7 @@ if (signupForm) {
             
             if (response.ok) {
                 // Show success message
-                alert('OTP sent to your email! Please check your inbox.');
+                showToast('✅ OTP sent to your email! Check your inbox.', 'success');
                 
                 // Show OTP form
                 signupForm.style.display = 'none';
@@ -123,11 +149,11 @@ if (signupForm) {
                 document.getElementById('sent-email').textContent = email;
             } else {
                 // Show error
-                alert(data.error || 'Failed to send OTP. Please try again.');
+                showToast('❌ ' + (data.error || 'Failed to send OTP. Please try again.'), 'error');
             }
         } catch (error) {
             console.error('Signup error:', error);
-            alert('Network error. Please check your connection and try again.');
+            showToast('❌ Network error. Please check your connection.', 'error');
         } finally {
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
@@ -174,11 +200,15 @@ if (otpForm) {
                 localStorage.setItem('userFirstName', data.user.firstName);
                 localStorage.setItem('authToken', data.token);
                 
+                showToast('✅ Success! Redirecting to dashboard...', 'success');
+                
                 // Redirect to dashboard
-                window.location.href = 'dashboard.html';
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
             } else {
                 // OTP is incorrect
-                alert(data.error || 'Invalid OTP code. Please try again.');
+                showToast('❌ ' + (data.error || 'Invalid OTP code. Please try again.'), 'error');
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
                 document.getElementById('otp').value = '';
@@ -186,7 +216,7 @@ if (otpForm) {
             }
         } catch (error) {
             console.error('Verification error:', error);
-            alert('Network error. Please check your connection and try again.');
+            showToast('❌ Network error. Please check your connection.', 'error');
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
         }
@@ -221,13 +251,13 @@ if (resendBtn) {
             const data = await response.json();
             
             if (response.ok) {
-                alert('New OTP sent to your email!');
+                showToast('✅ New OTP sent to your email!', 'success');
             } else {
-                alert(data.error || 'Failed to resend OTP. Please try again.');
+                showToast('❌ ' + (data.error || 'Failed to resend OTP. Please try again.'), 'error');
             }
         } catch (error) {
             console.error('Resend error:', error);
-            alert('Network error. Please check your connection and try again.');
+            showToast('❌ Network error. Please check your connection.', 'error');
         } finally {
             resendBtn.disabled = false;
             resendBtn.textContent = 'Resend OTP';
