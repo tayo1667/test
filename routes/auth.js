@@ -17,7 +17,12 @@ router.post('/login/send-otp', async (req, res) => {
 
     if (!email) {
       console.log('❌ [LOGIN] Error: Email is required');
-      return res.status(400).json({ error: 'Email is required' });
+      return res.status(400).json({
+        success: false,
+        error: 'Email is required',
+        reason: 'Provide a valid email address to receive the login code.',
+        statusCode: 400
+      });
     }
 
     // Check if user exists
@@ -28,7 +33,12 @@ router.post('/login/send-otp', async (req, res) => {
 
     if (userRows.length === 0) {
       console.log('❌ [LOGIN] Error: User not found -', email);
-      return res.status(404).json({ error: 'User not found. Please sign up first.' });
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+        reason: 'No account exists with this email. Please sign up first.',
+        statusCode: 404
+      });
     }
 
     console.log('✅ [LOGIN] User found, generating OTP...');
@@ -51,7 +61,12 @@ router.post('/login/send-otp', async (req, res) => {
     
     if (!emailResult.success && process.env.NODE_ENV === 'production') {
       console.log('❌ [LOGIN] Email send failed in production');
-      return res.status(500).json({ error: 'Failed to send OTP email' });
+      return res.status(500).json({
+        success: false,
+        error: 'Email could not be sent',
+        reason: emailResult.error || 'Failed to send OTP. Please try again later.',
+        statusCode: 500
+      });
     }
     if (process.env.NODE_ENV === 'development' && !emailResult.success) {
       console.log(`🔐 [LOGIN] DEV OTP for ${email}: ${otp}`);
@@ -65,13 +80,20 @@ router.post('/login/send-otp', async (req, res) => {
     }
 
     console.log('✅ [LOGIN] OTP sent successfully to:', email);
-    res.json({ 
-      success: true, 
-      message: 'OTP sent to your email address'
+    res.status(200).json({
+      success: true,
+      message: 'Login code sent',
+      detail: 'Check your email for the 6-digit code. It expires in 10 minutes.',
+      statusCode: 200
     });
   } catch (error) {
     console.error('❌ [LOGIN] Error:', error.message);
-    res.status(500).json({ error: 'Failed to send OTP' });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send login code',
+      reason: error.message,
+      statusCode: 500
+    });
   }
 });
 
@@ -83,7 +105,12 @@ router.post('/login/verify-otp', async (req, res) => {
 
     if (!email || !otp) {
       console.log('❌ [LOGIN VERIFY] Error: Email and OTP are required');
-      return res.status(400).json({ error: 'Email and OTP are required' });
+      return res.status(400).json({
+        success: false,
+        error: 'Email and OTP are required',
+        reason: 'Provide both the email address and the 6-digit code from your email.',
+        statusCode: 400
+      });
     }
 
     // Get user and verify OTP
@@ -94,7 +121,12 @@ router.post('/login/verify-otp', async (req, res) => {
 
     if (rows.length === 0) {
       console.log('❌ [LOGIN VERIFY] Error: User not found -', email);
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+        reason: 'No account found for this email. Request a new login code.',
+        statusCode: 404
+      });
     }
 
     const user = rows[0];
@@ -102,13 +134,23 @@ router.post('/login/verify-otp', async (req, res) => {
     // Check OTP
     if (user.otp_code !== otp) {
       console.log('❌ [LOGIN VERIFY] Error: Invalid OTP for', email);
-      return res.status(401).json({ error: 'Invalid OTP' });
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid code',
+        reason: 'The code you entered is wrong. Check your email and try again.',
+        statusCode: 401
+      });
     }
 
     // Check expiration
     if (new Date() > new Date(user.otp_expires_at)) {
       console.log('❌ [LOGIN VERIFY] Error: OTP expired for', email);
-      return res.status(401).json({ error: 'OTP expired' });
+      return res.status(401).json({
+        success: false,
+        error: 'Code expired',
+        reason: 'This code has expired. Request a new login code from the login page.',
+        statusCode: 401
+      });
     }
 
     console.log('✅ [LOGIN VERIFY] OTP verified, generating token...');
@@ -134,8 +176,9 @@ router.post('/login/verify-otp', async (req, res) => {
     );
 
     console.log('✅ [LOGIN VERIFY] Login successful for:', email);
-    res.json({
+    res.status(200).json({
       success: true,
+      message: 'Login successful',
       token,
       user: {
         id: user.id,
@@ -143,11 +186,17 @@ router.post('/login/verify-otp', async (req, res) => {
         firstName: user.first_name,
         lastName: user.last_name,
         fullName: user.full_name
-      }
+      },
+      statusCode: 200
     });
   } catch (error) {
     console.error('❌ [LOGIN VERIFY] Error:', error.message);
-    res.status(500).json({ error: 'Failed to verify OTP' });
+    res.status(500).json({
+      success: false,
+      error: 'Verification failed',
+      reason: error.message,
+      statusCode: 500
+    });
   }
 });
 
@@ -159,7 +208,12 @@ router.post('/signup/send-otp', async (req, res) => {
 
     if (!email || !firstName || !lastName) {
       console.log('❌ [SIGNUP] Error: All fields are required');
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json({
+        success: false,
+        error: 'All fields are required',
+        reason: 'Provide email, first name, and last name to sign up.',
+        statusCode: 400
+      });
     }
 
     // Check if user already exists
@@ -170,7 +224,12 @@ router.post('/signup/send-otp', async (req, res) => {
 
     if (existingRows.length > 0) {
       console.log('❌ [SIGNUP] Error: User already exists -', email);
-      return res.status(409).json({ error: 'User already exists' });
+      return res.status(409).json({
+        success: false,
+        error: 'Email already registered',
+        reason: 'An account already exists with this email. Try logging in instead.',
+        statusCode: 409
+      });
     }
 
     console.log('✅ [SIGNUP] Email available, creating user...');
@@ -197,7 +256,12 @@ router.post('/signup/send-otp', async (req, res) => {
     
     if (!emailResult.success && process.env.NODE_ENV === 'production') {
       console.log('❌ [SIGNUP] Email send failed in production');
-      return res.status(500).json({ error: 'Failed to send OTP email' });
+      return res.status(500).json({
+        success: false,
+        error: 'Verification email could not be sent',
+        reason: emailResult.error || 'Failed to send code. Please try again later.',
+        statusCode: 500
+      });
     }
     if (process.env.NODE_ENV === 'development' && !emailResult.success) {
       console.log(`🔐 [SIGNUP] DEV OTP for ${email}: ${otp}`);
@@ -211,13 +275,20 @@ router.post('/signup/send-otp', async (req, res) => {
     }
 
     console.log('✅ [SIGNUP] OTP sent successfully to:', email);
-    res.json({ 
-      success: true, 
-      message: 'OTP sent to your email address'
+    res.status(200).json({
+      success: true,
+      message: 'Verification email sent',
+      detail: 'Check your email for the 6-digit code to complete signup. It expires in 10 minutes.',
+      statusCode: 200
     });
   } catch (error) {
     console.error('❌ [SIGNUP] Error:', error.message);
-    res.status(500).json({ error: 'Failed to send OTP' });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send verification code',
+      reason: error.message,
+      statusCode: 500
+    });
   }
 });
 
@@ -229,7 +300,12 @@ router.post('/signup/verify-otp', async (req, res) => {
 
     if (!email || !otp) {
       console.log('❌ [SIGNUP VERIFY] Error: Email and OTP are required');
-      return res.status(400).json({ error: 'Email and OTP are required' });
+      return res.status(400).json({
+        success: false,
+        error: 'Email and OTP are required',
+        reason: 'Provide both the email you signed up with and the 6-digit code from your email.',
+        statusCode: 400
+      });
     }
 
     // Get user and verify OTP
@@ -240,7 +316,12 @@ router.post('/signup/verify-otp', async (req, res) => {
 
     if (rows2.length === 0) {
       console.log('❌ [SIGNUP VERIFY] Error: User not found -', email);
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+        reason: 'No signup found for this email. Start signup again.',
+        statusCode: 404
+      });
     }
 
     const user = rows2[0];
@@ -248,13 +329,23 @@ router.post('/signup/verify-otp', async (req, res) => {
     // Check OTP
     if (user.otp_code !== otp) {
       console.log('❌ [SIGNUP VERIFY] Error: Invalid OTP for', email);
-      return res.status(401).json({ error: 'Invalid OTP' });
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid code',
+        reason: 'The code you entered is wrong. Check your email and try again.',
+        statusCode: 401
+      });
     }
 
     // Check expiration
     if (new Date() > new Date(user.otp_expires_at)) {
       console.log('❌ [SIGNUP VERIFY] Error: OTP expired for', email);
-      return res.status(401).json({ error: 'OTP expired' });
+      return res.status(401).json({
+        success: false,
+        error: 'Code expired',
+        reason: 'This code has expired. Start signup again to get a new code.',
+        statusCode: 401
+      });
     }
 
     console.log('✅ [SIGNUP VERIFY] OTP verified, completing signup...');
@@ -280,8 +371,9 @@ router.post('/signup/verify-otp', async (req, res) => {
     );
 
     console.log('✅ [SIGNUP VERIFY] Signup successful for:', email);
-    res.json({
+    res.status(200).json({
       success: true,
+      message: 'Signup complete',
       token,
       user: {
         id: user.id,
@@ -289,11 +381,17 @@ router.post('/signup/verify-otp', async (req, res) => {
         firstName: user.first_name,
         lastName: user.last_name,
         fullName: user.full_name
-      }
+      },
+      statusCode: 200
     });
   } catch (error) {
     console.error('❌ [SIGNUP VERIFY] Error:', error.message);
-    res.status(500).json({ error: 'Failed to verify OTP' });
+    res.status(500).json({
+      success: false,
+      error: 'Verification failed',
+      reason: error.message,
+      statusCode: 500
+    });
   }
 });
 
@@ -306,10 +404,19 @@ router.post('/logout', async (req, res) => {
       await pool.query('DELETE FROM sessions WHERE token = ?', [token]);
     }
 
-    res.json({ success: true, message: 'Logged out successfully' });
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully',
+      statusCode: 200
+    });
   } catch (error) {
     console.error('Logout error:', error);
-    res.status(500).json({ error: 'Failed to logout' });
+    res.status(500).json({
+      success: false,
+      error: 'Logout failed',
+      reason: error.message,
+      statusCode: 500
+    });
   }
 });
 
