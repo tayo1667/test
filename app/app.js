@@ -1,9 +1,9 @@
 // Web App Authentication with Email OTP
 
-// API base: use HTTPS in production (mobile often fails on mixed content or HTTP).
+// API base: always HTTPS in production; robust fallback for all browsers (iOS, Android, Windows).
 const API_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
-    : (window.location.protocol === 'https:' ? window.location.origin : 'https://' + window.location.host);
+    : (window.location.origin || (window.location.protocol + '//' + window.location.host)).replace(/^http:/, 'https:');
 
 const FETCH_TIMEOUT_MS = 25000;
 async function apiFetch(url, options = {}, retries = 1) {
