@@ -36,6 +36,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Request logging: log method, URL, and status code when response finishes (so Railway shows 200, 400, 404, 500)
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    const status = res.statusCode;
+    const log = `${req.method} ${req.originalUrl} ${status}`;
+    if (status >= 500) console.error(log);
+    else if (status >= 400) console.warn(log);
+    else console.log(log);
+  });
+  next();
+});
+
 // Serve static files
 app.use(express.static(path.join(__dirname)));
 
@@ -63,11 +75,12 @@ app.get('/api/db-info', async (req, res) => {
       connection: 'OK'
     });
   } catch (error) {
-    res.json({
+    res.status(500).json({
       database_type: 'Unknown',
       database_url_set: !!process.env.DATABASE_URL,
       error: error.message,
-      connection: 'FAILED'
+      connection: 'FAILED',
+      statusCode: 500
     });
   }
 });
@@ -116,6 +129,25 @@ app.get('/deposit', (req, res) => {
 
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// 404 for unknown API routes – always return JSON with statusCode so clients see 404
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+    path: req.originalUrl,
+    statusCode: 404
+  });
+});
+
+// Global error handler – catch unhandled errors and return 500 + JSON (so Railway shows status)
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: err.message || 'Something went wrong',
+    statusCode: 500
+  });
 });
 
 // Initialize database and start server
