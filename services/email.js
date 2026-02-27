@@ -4,7 +4,23 @@
  */
 
 const apiKey = process.env.RESEND_API_KEY;
-const fromEmail = process.env.FROM_EMAIL || 'Sentriom <onboarding@resend.dev>';
+
+// Resend requires: "email@example.com" OR "Name <email@example.com>"
+// .env can truncate at space, so "Sentriom <noreply@x.com>" may become "Sentriom" – normalize to a valid value.
+const RESEND_DEFAULT_FROM = 'onboarding@resend.dev';
+
+function getValidFromEmail() {
+  const raw = (process.env.FROM_EMAIL || '').trim();
+  if (!raw) return RESEND_DEFAULT_FROM;
+  // Already "Name <email@domain.com>"
+  if (/^.+\s*<[^>]+@[^>]+>$/.test(raw)) return raw;
+  // Plain "email@domain.com"
+  if (/^[^\s<>]+@[^\s<>]+\.[^\s<>]+$/.test(raw)) return raw;
+  // Broken: no @ or invalid (e.g. just "Sentriom") – use Resend default
+  return RESEND_DEFAULT_FROM;
+}
+
+const fromEmail = getValidFromEmail();
 
 console.log('📧 [EMAIL SERVICE] Initializing...');
 console.log('📧 [EMAIL SERVICE] RESEND_API_KEY set:', !!apiKey);
