@@ -68,9 +68,7 @@ router.post('/login/send-otp', async (req, res) => {
         statusCode: 500
       });
     }
-    if (process.env.NODE_ENV === 'development' && !emailResult.success) {
-      console.log(`🔐 [LOGIN] DEV OTP for ${email}: ${otp}`);
-    }
+    // REMOVED: Development OTP logging for security
     
     if (emailResult.success) {
       console.log('✅ [LOGIN] Email sent successfully!');
@@ -263,9 +261,7 @@ router.post('/signup/send-otp', async (req, res) => {
         statusCode: 500
       });
     }
-    if (process.env.NODE_ENV === 'development' && !emailResult.success) {
-      console.log(`🔐 [SIGNUP] DEV OTP for ${email}: ${otp}`);
-    }
+    // REMOVED: Development OTP logging for security
     
     if (emailResult.success) {
       console.log('✅ [SIGNUP] Email sent successfully!');

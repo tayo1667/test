@@ -116,7 +116,13 @@ async function sendEmail({ to, subject, html, text }) {
     console.log('❌ [SEND EMAIL]   to:', toList.join(', '));
     console.log('❌ [SEND EMAIL]   subject:', subject);
     if (text) console.log('❌ [SEND EMAIL]   text:', text);
-    return { success: true };
+    
+    // In development, allow it to pass (OTP will be logged to console)
+    // In production, this is a real error
+    if (process.env.NODE_ENV === 'production') {
+      return { success: false, error: 'Email service not configured. RESEND_API_KEY is missing.' };
+    }
+    return { success: true }; // Dev mode: allow for testing
   }
 
   try {

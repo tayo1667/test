@@ -1497,3 +1497,276 @@ body {
         width: 100%;
     }
 }
+
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 10000;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+/* Crypto Grid */
+.crypto-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.crypto-card {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.crypto-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.crypto-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+}
+
+.crypto-card-icon.btc {
+    background: linear-gradient(135deg, #f7931a, #ff6b00);
+}
+
+.crypto-card-icon.eth {
+    background: linear-gradient(135deg, #627eea, #4e5ee4);
+}
+
+.crypto-card-icon.usdt {
+    background: linear-gradient(135deg, #26a17b, #50af95);
+}
+
+.crypto-card-icon.bnb {
+    background: linear-gradient(135deg, #f3ba2f, #f0b90b);
+}
+
+.crypto-card-icon.sol {
+    background: linear-gradient(135deg, #9945ff, #14f195);
+}
+
+.crypto-card-info h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+}
+
+.crypto-card-info p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.crypto-card-apy {
+    margin-top: 12px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    text-align: center;
+}
+
+/* Plans Info Grid */
+.plans-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.plan-info-card {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.plan-info-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.plan-info-card.featured {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.plan-info-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 4px 16px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.plan-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.plan-info-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.plan-info-apy {
+    font-size: 24px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.plan-info-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.plan-info-features li {
+    padding: 8px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+/* Deposit Summary */
+.deposit-summary {
+    background: var(--bg-secondary);
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.summary-row:last-child {
+    margin-bottom: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .crypto-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .plans-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        max-width: 95%;
+    }
+}

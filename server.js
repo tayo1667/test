@@ -72,6 +72,20 @@ app.use('/api/deposits', depositRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Email config check endpoint (for debugging)
+app.get('/api/email-config', (req, res) => {
+  const { isConfigured } = require('./services/email');
+  res.json({
+    email_service_configured: isConfigured(),
+    resend_api_key_set: !!process.env.RESEND_API_KEY,
+    resend_api_key_length: process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.length : 0,
+    resend_api_key_prefix: process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.substring(0, 5) : 'NOT_SET',
+    from_email: process.env.FROM_EMAIL || 'NOT_SET',
+    node_env: process.env.NODE_ENV || 'NOT_SET',
+    status: isConfigured() ? 'READY' : 'NOT_CONFIGURED'
+  });
+});
+
 // Database info endpoint (for debugging)
 app.get('/api/db-info', async (req, res) => {
   try {
