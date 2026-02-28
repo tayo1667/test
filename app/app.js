@@ -3,9 +3,24 @@
 // Call Railway directly in production so requests hit your app and show in Railway logs (no proxy needed).
 // Replace with your real Railway URL if different (e.g. https://your-app.up.railway.app).
 const RAILWAY_API_URL = 'https://sentriom-production.up.railway.app';
-const API_URL = window.location.hostname === 'localhost'
+const hostname = window.location.hostname;
+const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+const isRailway = hostname.endsWith('.up.railway.app') || hostname.endsWith('.railway.app');
+const isProdCustomDomain = hostname === 'sentriom.com' || hostname === 'www.sentriom.com';
+
+// Local/dev:
+// - http://localhost:3000        -> same machine API
+// - http://192.168.x.x:3000      -> LAN access from other devices
+// Production:
+// - https://sentriom.com         -> Railway API
+// - https://*.up.railway.app     -> same-origin API
+const API_URL = isLocalhost
     ? 'http://localhost:3000'
-    : RAILWAY_API_URL;
+    : isProdCustomDomain
+        ? RAILWAY_API_URL
+        : isRailway
+            ? window.location.origin
+            : `http://${hostname}:3000`;
 
 const FETCH_TIMEOUT_MS = 25000;
 async function apiFetch(url, options = {}, retries = 1) {
