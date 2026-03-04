@@ -174,22 +174,65 @@ function updateDepositSummary() {
     document.getElementById('maturity-date').textContent = maturityDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-// Handle deposit form submission
+// Handle deposit form submission - Redirect to OrbytPay
 function handleDepositSubmit(e) {
     e.preventDefault();
     
     const modal = document.getElementById('deposit-modal');
     const crypto = modal.getAttribute('data-crypto');
     const cryptoName = modal.getAttribute('data-crypto-name');
+    const cryptoPrice = parseFloat(modal.getAttribute('data-crypto-price'));
     const amount = parseFloat(document.getElementById('crypto-amount').value);
     const plan = parseInt(document.getElementById('savings-plan').value);
     
-    console.log('💰 Deposit submission:', { crypto, cryptoName, amount, plan });
+    if (!amount || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+    }
     
-    // TODO: Integrate with Korapay payment
-    alert(`Deposit ${amount} ${crypto} for ${plan} months\n\nPayment integration coming soon!`);
+    // Calculate USD value
+    const usdValue = (cryptoPrice * amount).toFixed(2);
     
-    closeDepositModal();
+    // Calculate APY based on plan
+    const apyRates = { 3: 2.4, 6: 3.6, 12: 4.8 };
+    const apy = apyRates[plan] || 3.6;
+    
+    console.log('💰 Redirecting to OrbytPay:', { crypto, cryptoName, amount, usdValue, rate: cryptoPrice, plan, apy });
+    
+    // Prepare payment data for OrbytPay
+    const paymentData = {
+        crypto: crypto,
+        cryptoName: cryptoName,
+        amount: amount,
+        usdValue: usdValue,
+        rate: cryptoPrice,
+        plan: plan,
+        apy: apy,
+        returnUrl: window.location.origin + '/app/dashboard.html',
+        // User info
+        userEmail: localStorage.getItem('userEmail') || '',
+        userName: localStorage.getItem('userName') || '',
+        source: 'sentriom'
+    };
+    
+    // Encode payment data as URL parameters
+    const params = new URLSearchParams(paymentData);
+    
+    // Store deposit info in localStorage for when user returns
+    localStorage.setItem('pendingDeposit', JSON.stringify({
+        cryptocurrency: crypto,
+        amount: amount,
+        usd_value: usdValue,
+        savings_plan: plan,
+        deposit_rate: cryptoPrice,
+        timestamp: Date.now()
+    }));
+    
+    // Redirect to OrbytPay payment page
+    const orbytpayUrl = `https://orbytpay.org/pay?${params.toString()}`;
+    console.log('🔗 Redirecting to:', orbytpayUrl);
+    
+    window.location.href = orbytpayUrl;
 }
 
 // Close modal when clicking overlay
